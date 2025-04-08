@@ -169,20 +169,25 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _message = '';
+  bool _success = false;
+  bool _initialState = true;
+  String _userEmail = '';
 
-  void _signIn() async {
+  void _signInWithEmailAndPassword() async {
     try {
       await widget.auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
       setState(() {
-        _message = 'Successfully signed in ${_emailController.text}';
+        _success = true;
+        _userEmail = _emailController.text;
+        _initialState = false;
       });
     } catch (e) {
       setState(() {
-        _message = 'Sign in failed';
+        _success = false;
+        _initialState = false;
       });
     }
   }
@@ -194,12 +199,17 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          Container(
+            child: Text('Test sign in with email and password'),
+            padding: const EdgeInsets.all(16),
+            alignment: Alignment.center,
+          ),
           TextFormField(
             controller: _emailController,
             decoration: InputDecoration(labelText: 'Email'),
             validator: (value) {
               if (value?.isEmpty ?? true) {
-                return 'Please enter email';
+                return 'Please enter some text';
               }
               return null;
             },
@@ -207,10 +217,9 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
           TextFormField(
             controller: _passwordController,
             decoration: InputDecoration(labelText: 'Password'),
-            obscureText: true,
             validator: (value) {
               if (value?.isEmpty ?? true) {
-                return 'Please enter password';
+                return 'Please enter some text';
               }
               return null;
             },
@@ -221,22 +230,22 @@ class _EmailPasswordFormState extends State<EmailPasswordForm> {
             child: ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  _signIn();
+                  _signInWithEmailAndPassword();
                 }
               },
-              child: Text('Sign In'),
+              child: Text('Submit'),
             ),
           ),
           Container(
             alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              _message,
-              style: TextStyle(
-                color:
-                    _message.contains('Successfully')
-                        ? Colors.green
-                        : Colors.red,
-              ),
+              _initialState
+                  ? 'Please sign in'
+                  : _success
+                  ? 'Successfully signed in $_userEmail'
+                  : 'Sign in failed',
+              style: TextStyle(color: _success ? Colors.green : Colors.red),
             ),
           ),
         ],
